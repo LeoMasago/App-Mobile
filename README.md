@@ -3,6 +3,7 @@
 * npm install firebase
 * npx expo install expo-camera
 * adicionar env.js com as variáveis do firebase
+* npx expo start
 <br>
 
 ### Ex:

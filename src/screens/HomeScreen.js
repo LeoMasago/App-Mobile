@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, Alert, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+} from "react-native";
 import {
   createProduct,
   getProducts,
@@ -13,6 +22,20 @@ export default function HomeScreen({ navigation, route }) {
   const [barcode, setBarcode] = useState("");
   const [products, setProducts] = useState([]);
   const [editingProductId, setEditingProductId] = useState(null);
+
+  function formatPrice(digits) {
+    if (!digits) return "";
+    const cents = parseInt(digits, 10);
+    return (cents / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
+  function handlePriceChange(text) {
+    const digits = text.replace(/\D/g, "");
+    setPrice(digits);
+  }
 
   async function loadProducts() {
     try {
@@ -28,12 +51,6 @@ export default function HomeScreen({ navigation, route }) {
     loadProducts();
   }, []);
 
-  useEffect(() => {
-    if (route.params?.scannedBarcode) {
-      setBarcode(String(route.params.scannedBarcode));
-    }
-  }, [route.params?.scannedBarcode]);
-
   function clearForm() {
     setName("");
     setPrice("");
@@ -42,14 +59,14 @@ export default function HomeScreen({ navigation, route }) {
   }
 
   async function handleSaveProduct() {
-    if (!name.trim() || !price.trim()) {
+    if (!name.trim() || !price) {
       Alert.alert("Atenção", "Preencha nome e preço do produto.");
       return;
     }
 
     const productData = {
       name: name.trim(),
-      price: price.trim(),
+      price: formatPrice(price),
       barcode: barcode ? String(barcode).trim() : "",
     };
 
@@ -72,7 +89,8 @@ export default function HomeScreen({ navigation, route }) {
 
   function handleEditProduct(product) {
     setName(product.name || "");
-    setPrice(product.price || "");
+    const digits = (product.price || "").replace(/\D/g, "");
+    setPrice(digits);
     setBarcode(product.barcode || "");
     setEditingProductId(product.id);
   }
@@ -103,106 +121,120 @@ export default function HomeScreen({ navigation, route }) {
     }
   }
 
+  useEffect(() => {
+    if (route.params?.scannedBarcode) {
+      setBarcode(String(route.params.scannedBarcode));
+    }
+  }, [route.params?.scannedBarcode]);
+
   function handleOpenScanner() {
     navigation.navigate("BarcodeScanner");
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, marginTop: 40, marginBottom: 20 }}>
-        Bem-vindo!
-      </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: 20 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={{ fontSize: 24, marginTop: 40, marginBottom: 20 }}>
+          Bem-vindo!
+        </Text>
 
-      <View style={{ marginBottom: 20 }}>
-        <Button title="Ler código de barras" onPress={handleOpenScanner} />
-      </View>
-
-      <TextInput
-        placeholder="Nome do produto"
-        value={name}
-        onChangeText={setName}
-        style={{
-          borderWidth: 1,
-          marginBottom: 10,
-          padding: 10,
-          borderRadius: 5,
-        }}
-      />
-
-      <TextInput
-        placeholder="Preço"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="numeric"
-        style={{
-          borderWidth: 1,
-          marginBottom: 10,
-          padding: 10,
-          borderRadius: 5,
-        }}
-      />
-
-      <TextInput
-        placeholder="Código de barras"
-        value={barcode}
-        onChangeText={setBarcode}
-        style={{
-          borderWidth: 1,
-          marginBottom: 20,
-          padding: 10,
-          borderRadius: 5,
-        }}
-      />
-
-      <Button
-        title={editingProductId ? "Atualizar produto" : "Cadastrar produto"}
-        onPress={handleSaveProduct}
-      />
-
-      {editingProductId && (
-        <View style={{ marginTop: 10 }}>
-          <Button title="Cancelar edição" onPress={handleCancelEdit} />
+        <View style={{ marginBottom: 20 }}>
+          <Button title="Ler código de barras" onPress={handleOpenScanner} />
         </View>
-      )}
 
-      <Text style={{ fontSize: 20, marginTop: 30, marginBottom: 10 }}>
-        Produtos cadastrados
-      </Text>
+        <TextInput
+          placeholder="Nome do produto"
+          value={name}
+          onChangeText={setName}
+          style={{
+            borderWidth: 1,
+            marginBottom: 10,
+            padding: 10,
+            borderRadius: 5,
+          }}
+        />
 
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text>Nenhum produto cadastrado.</Text>}
-        renderItem={({ item }) => (
-          <View
-            style={{
-              borderWidth: 1,
-              borderRadius: 5,
-              padding: 10,
-              marginBottom: 10,
-            }}
-          >
-            <Text>Nome: {item.name}</Text>
-            <Text>Preço: {item.price}</Text>
-            <Text>Código de barras: {item.barcode || "Não informado"}</Text>
+        <TextInput
+          placeholder="Preço"
+          value={formatPrice(price)}
+          onChangeText={handlePriceChange}
+          keyboardType="numeric"
+          style={{
+            borderWidth: 1,
+            marginBottom: 10,
+            padding: 10,
+            borderRadius: 5,
+          }}
+        />
 
-            <View style={{ marginTop: 10 }}>
-              <Button title="Editar" onPress={() => handleEditProduct(item)} />
-            </View>
+        <TextInput
+          placeholder="Código de barras"
+          value={barcode}
+          onChangeText={setBarcode}
+          style={{
+            borderWidth: 1,
+            marginBottom: 20,
+            padding: 10,
+            borderRadius: 5,
+          }}
+        />
 
-            <View style={{ marginTop: 10 }}>
-              <Button
-                title="Excluir"
-                onPress={() => handleDeleteProduct(item.id)}
-              />
-            </View>
+        <Button
+          title={editingProductId ? "Atualizar produto" : "Cadastrar produto"}
+          onPress={handleSaveProduct}
+        />
+
+        {editingProductId && (
+          <View style={{ marginTop: 10 }}>
+            <Button title="Cancelar edição" onPress={handleCancelEdit} />
           </View>
         )}
-      />
 
-      <View style={{ marginTop: 20 }}>
-        <Button title="Sair" onPress={() => navigation.navigate("Login")} />
-      </View>
-    </View>
+        <Text style={{ fontSize: 20, marginTop: 30, marginBottom: 10 }}>
+          Produtos cadastrados
+        </Text>
+
+        {products.length === 0 ? (
+          <Text>Nenhum produto cadastrado.</Text>
+        ) : (
+          products.map((item) => (
+            <View
+              key={item.id}
+              style={{
+                borderWidth: 1,
+                borderRadius: 5,
+                padding: 10,
+                marginBottom: 10,
+              }}
+            >
+              <Text>Nome: {item.name}</Text>
+              <Text>Preço: {item.price}</Text>
+              <Text>Código de barras: {item.barcode || "Não informado"}</Text>
+
+              <View style={{ marginTop: 10 }}>
+                <Button title="Editar" onPress={() => handleEditProduct(item)} />
+              </View>
+
+              <View style={{ marginTop: 10 }}>
+                <Button
+                  title="Excluir"
+                  onPress={() => handleDeleteProduct(item.id)}
+                />
+              </View>
+            </View>
+          ))
+        )}
+
+        <View style={{ marginTop: 20 }}>
+          <Button title="Sair" onPress={() => navigation.navigate("Login")} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
