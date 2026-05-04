@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { View, Text, Button, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 
-export default function BarcodeScannerScreen({ navigation }) {
+export default function BarcodeScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const scannedRef = useRef(false);
 
   function handleBarcodeScanned({ data }) {
-    if (scanned) return;
-
+    if (scannedRef.current) return;
+    scannedRef.current = true;
     setScanned(true);
 
     Alert.alert('Código lido', data, [
@@ -17,6 +18,8 @@ export default function BarcodeScannerScreen({ navigation }) {
         onPress: () => {
           navigation.navigate('Home', {
             scannedBarcode: data,
+            currentName: route.params?.currentName,
+            currentPrice: route.params?.currentPrice,
           });
         },
       },
@@ -80,6 +83,7 @@ export default function BarcodeScannerScreen({ navigation }) {
           <Button
             title="Ler novamente"
             onPress={() => {
+              scannedRef.current = false;
               setScanned(false);
             }}
           />

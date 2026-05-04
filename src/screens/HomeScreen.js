@@ -123,12 +123,14 @@ export default function HomeScreen({ navigation, route }) {
 
   useEffect(() => {
     if (route.params?.scannedBarcode) {
+      setName(route.params.currentName ?? name);
+      setPrice(route.params.currentPrice ?? price);
       setBarcode(String(route.params.scannedBarcode));
     }
   }, [route.params?.scannedBarcode]);
 
   function handleOpenScanner() {
-    navigation.navigate("BarcodeScanner");
+    navigation.navigate("BarcodeScanner", { currentName: name, currentPrice: price });
   }
 
   return (
