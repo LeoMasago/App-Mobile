@@ -8,6 +8,6 @@
 
 ### 3ESPV:
 
-`Léo Kenzo Yamanaka Masago"`
+`Léo Kenzo Yamanaka Masago`
 
-`RM557768"`
+`RM557768`
