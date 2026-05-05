@@ -2,12 +2,7 @@
 * npm i
 * npm install firebase
 * npx expo install expo-camera
-* adicionar env.js com as variáveis do firebase
+* adicionar .env com as variáveis do firebase
 * npx expo start
 <br>
 
-### Ex:
-
-`export const API_KEY = "eojnbuoeibni"`
-
-`export const AUTH_DOMAIN = "fiap-aulaswjnwibnibn"`
