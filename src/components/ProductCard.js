@@ -6,8 +6,14 @@ export default function ProductCard({ item, onEdit, onDelete }) {
     <View style={styles.card}>
       <Text style={styles.text}>Nome: {item.name}</Text>
       <Text style={styles.text}>Preço: {item.price}</Text>
-      <Text style={styles.textLast}>
+      <Text style={styles.text}>
         Código de barras: {item.barcode || "Não informado"}
+      </Text>
+      <Text style={styles.textLast}>
+        Localização:{" "}
+        {item.location
+          ? `Lat: ${item.location.latitude.toFixed(6)}, Lon: ${item.location.longitude.toFixed(6)}`
+          : "Não capturada"}
       </Text>
 
       <AppButton title="Editar" onPress={onEdit} style={styles.buttonSpacing} />

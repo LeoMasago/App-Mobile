@@ -1,19 +1,32 @@
 import { useState, useRef } from 'react';
 import { View, Text, Button, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Location from 'expo-location';
 
 export default function BarcodeScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const scannedRef = useRef(false);
 
-  function handleBarcodeScanned({ data }) {
+  async function handleBarcodeScanned({ data }) {
     if (scanned) return;
-
     if (scannedRef.current) return;
     scannedRef.current = true;
-
     setScanned(true);
+
+    let location = null;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const coords = await Location.getCurrentPositionAsync({});
+        location = {
+          latitude: coords.coords.latitude,
+          longitude: coords.coords.longitude,
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao capturar localização:', error);
+    }
 
     Alert.alert('Código lido', data, [
       {
@@ -21,6 +34,7 @@ export default function BarcodeScannerScreen({ navigation, route }) {
         onPress: () => {
           navigation.navigate('Home', {
             scannedBarcode: data,
+            scannedLocation: location,
             currentName: route.params?.currentName || "",
             currentPrice: route.params?.currentPrice || "",
             currentBarcode: route.params?.currentBarcode || "",

@@ -14,6 +14,7 @@ export default function HomeScreen({ navigation, route }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [location, setLocation] = useState(null);
   const [products, setProducts] = useState([]);
   const [editingProductId, setEditingProductId] = useState(null);
 
@@ -54,6 +55,7 @@ export default function HomeScreen({ navigation, route }) {
     setName("");
     setPrice("");
     setBarcode("");
+    setLocation(null);
     setEditingProductId(null);
   }
 
@@ -67,6 +69,7 @@ export default function HomeScreen({ navigation, route }) {
       name: name.trim(),
       price: formatPriceBR(price),
       barcode: barcode ? String(barcode).trim() : "",
+      location: location || null,
     };
 
     try {
@@ -91,6 +94,7 @@ export default function HomeScreen({ navigation, route }) {
     const digits = (product.price || "").replace(/\D/g, "");
     setPrice(digits);
     setBarcode(product.barcode || "");
+    setLocation(product.location || null);
     setEditingProductId(product.id);
   }
 
@@ -132,6 +136,7 @@ export default function HomeScreen({ navigation, route }) {
       setName(route.params.currentName || "");
       setPrice(route.params.currentPrice || "");
       setBarcode(String(route.params.scannedBarcode));
+      setLocation(route.params.scannedLocation || null);
     }
   }, [route.params?.scannedBarcode]);
 
@@ -155,6 +160,7 @@ export default function HomeScreen({ navigation, route }) {
           name={name}
           price={price}
           barcode={barcode}
+          location={location}
           setName={setName}
           handlePriceChange={handlePriceChange}
           setBarcode={setBarcode}
