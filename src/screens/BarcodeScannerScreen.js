@@ -8,8 +8,11 @@ export default function BarcodeScannerScreen({ navigation, route }) {
   const scannedRef = useRef(false);
 
   function handleBarcodeScanned({ data }) {
+    if (scanned) return;
+
     if (scannedRef.current) return;
     scannedRef.current = true;
+
     setScanned(true);
 
     Alert.alert('Código lido', data, [
@@ -18,8 +21,9 @@ export default function BarcodeScannerScreen({ navigation, route }) {
         onPress: () => {
           navigation.navigate('Home', {
             scannedBarcode: data,
-            currentName: route.params?.currentName,
-            currentPrice: route.params?.currentPrice,
+            currentName: route.params?.currentName || "",
+            currentPrice: route.params?.currentPrice || "",
+            currentBarcode: route.params?.currentBarcode || "",
           });
         },
       },

@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-} from "react-native";
+import { View, Text, Alert, FlatList } from "react-native";
+import ProductForm from "../components/ProductForm";
+import ProductCard from "../components/ProductCard";
+import AppButton from "../components/AppButton";
 import {
   createProduct,
   getProducts,
@@ -23,18 +17,23 @@ export default function HomeScreen({ navigation, route }) {
   const [products, setProducts] = useState([]);
   const [editingProductId, setEditingProductId] = useState(null);
 
-  function formatPrice(digits) {
-    if (!digits) return "";
-    const cents = parseInt(digits, 10);
-    return (cents / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+  function formatPriceBR(value) {
+    const onlyNumbers = value.replace(/\D/g, "");
+
+    if (!onlyNumbers) {
+      return "";
+    }
+
+    const numberValue = Number(onlyNumbers) / 100;
+
+    return numberValue.toLocaleString("pt-BR", {
+      style: "currency", currency: "BRL",
     });
   }
 
   function handlePriceChange(text) {
-    const digits = text.replace(/\D/g, "");
-    setPrice(digits);
+    const formattedPrice = formatPriceBR(text);
+    setPrice(formattedPrice);
   }
 
   async function loadProducts() {
@@ -66,7 +65,7 @@ export default function HomeScreen({ navigation, route }) {
 
     const productData = {
       name: name.trim(),
-      price: formatPrice(price),
+      price: formatPriceBR(price),
       barcode: barcode ? String(barcode).trim() : "",
     };
 
@@ -100,143 +99,89 @@ export default function HomeScreen({ navigation, route }) {
   }
 
   async function handleDeleteProduct(productId) {
-    const confirmDelete = window.confirm(
+    Alert.alert(
+      "Excluir produto",
       "Tem certeza que deseja excluir este produto?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteProduct(productId);
+
+              if (editingProductId === productId) {
+                clearForm();
+              }
+
+              Alert.alert("Sucesso", "Produto excluído com sucesso!");
+              await loadProducts();
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Erro", "Não foi possível excluir o produto.");
+            }
+          },
+        },
+      ]
     );
-
-    if (!confirmDelete) return;
-
-    try {
-      await deleteProduct(productId);
-
-      if (editingProductId === productId) {
-        clearForm();
-      }
-
-      Alert.alert("Sucesso", "Produto excluído com sucesso!");
-      await loadProducts();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Erro", "Não foi possível excluir o produto.");
-    }
   }
 
   useEffect(() => {
     if (route.params?.scannedBarcode) {
-      setName(route.params.currentName ?? name);
-      setPrice(route.params.currentPrice ?? price);
+      setName(route.params.currentName || "");
+      setPrice(route.params.currentPrice || "");
       setBarcode(String(route.params.scannedBarcode));
     }
   }, [route.params?.scannedBarcode]);
 
   function handleOpenScanner() {
-    navigation.navigate("BarcodeScanner", { currentName: name, currentPrice: price });
+    navigation.navigate("BarcodeScanner", {
+      currentName: name,
+      currentPrice: price,
+      currentBarcode: barcode,
+    });
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={{ padding: 20 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={{ fontSize: 24, marginTop: 40, marginBottom: 20 }}>
-          Bem-vindo!
-        </Text>
-
-        <View style={{ marginBottom: 20 }}>
-          <Button title="Ler código de barras" onPress={handleOpenScanner} />
-        </View>
-
-        <TextInput
-          placeholder="Nome do produto"
-          value={name}
-          onChangeText={setName}
-          style={{
-            borderWidth: 1,
-            marginBottom: 10,
-            padding: 10,
-            borderRadius: 5,
-          }}
+    <FlatList
+      data={products}
+      keyExtractor={(item) => item.id}
+      className="flex-1"
+      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      keyboardShouldPersistTaps="handled"
+      ListHeaderComponent={
+        <ProductForm
+          name={name}
+          price={price}
+          barcode={barcode}
+          setName={setName}
+          handlePriceChange={handlePriceChange}
+          setBarcode={setBarcode}
+          editingProductId={editingProductId}
+          handleSaveProduct={handleSaveProduct}
+          handleCancelEdit={handleCancelEdit}
+          handleOpenScanner={handleOpenScanner}
         />
-
-        <TextInput
-          placeholder="Preço"
-          value={formatPrice(price)}
-          onChangeText={handlePriceChange}
-          keyboardType="numeric"
-          style={{
-            borderWidth: 1,
-            marginBottom: 10,
-            padding: 10,
-            borderRadius: 5,
-          }}
+      }
+      ListEmptyComponent={
+        <Text className="text-gray-500">Nenhum produto cadastrado.</Text>
+      }
+      ListFooterComponent={
+        <AppButton
+          title="Sair"
+          onPress={() => navigation.navigate("Login")}
+          variant="secondary"
+          className="mt-5 mb-10"
         />
-
-        <TextInput
-          placeholder="Código de barras"
-          value={barcode}
-          onChangeText={setBarcode}
-          style={{
-            borderWidth: 1,
-            marginBottom: 20,
-            padding: 10,
-            borderRadius: 5,
-          }}
+      }
+      renderItem={({ item }) => (
+        <ProductCard
+          item={item}
+          onEdit={() => handleEditProduct(item)}
+          onDelete={() => handleDeleteProduct(item.id)}
         />
-
-        <Button
-          title={editingProductId ? "Atualizar produto" : "Cadastrar produto"}
-          onPress={handleSaveProduct}
-        />
-
-        {editingProductId && (
-          <View style={{ marginTop: 10 }}>
-            <Button title="Cancelar edição" onPress={handleCancelEdit} />
-          </View>
-        )}
-
-        <Text style={{ fontSize: 20, marginTop: 30, marginBottom: 10 }}>
-          Produtos cadastrados
-        </Text>
-
-        {products.length === 0 ? (
-          <Text>Nenhum produto cadastrado.</Text>
-        ) : (
-          products.map((item) => (
-            <View
-              key={item.id}
-              style={{
-                borderWidth: 1,
-                borderRadius: 5,
-                padding: 10,
-                marginBottom: 10,
-              }}
-            >
-              <Text>Nome: {item.name}</Text>
-              <Text>Preço: {item.price}</Text>
-              <Text>Código de barras: {item.barcode || "Não informado"}</Text>
-
-              <View style={{ marginTop: 10 }}>
-                <Button title="Editar" onPress={() => handleEditProduct(item)} />
-              </View>
-
-              <View style={{ marginTop: 10 }}>
-                <Button
-                  title="Excluir"
-                  onPress={() => handleDeleteProduct(item.id)}
-                />
-              </View>
-            </View>
-          ))
-        )}
-
-        <View style={{ marginTop: 20 }}>
-          <Button title="Sair" onPress={() => navigation.navigate("Login")} />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      )}
+    />
   );
 }
