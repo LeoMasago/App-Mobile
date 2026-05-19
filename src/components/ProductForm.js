@@ -1,6 +1,7 @@
 import { View, Text, Keyboard, StyleSheet } from "react-native";
 import FormInput from "./FormInput";
 import AppButton from "./AppButton";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 
 export default function ProductForm({
   name,
@@ -16,51 +17,63 @@ export default function ProductForm({
 }) {
   return (
     <View>
-      <Text style={styles.title}>Bem-vindo!</Text>
+      <View style={styles.welcomeSection}>
+        <Text style={styles.title}>Gestão de Produtos</Text>
+        <Text style={styles.subtitle}>Cadastre e gerencie seu estoque</Text>
+      </View>
 
-      <AppButton
-        title="Ler código de barras"
-        onPress={handleOpenScanner}
-        variant="secondary"
-        style={styles.scannerButton}
-      />
+      <View style={styles.formCard}>
+        <Text style={styles.sectionTitle}>
+          {editingProductId ? "Editar produto" : "Novo produto"}
+        </Text>
 
-      <FormInput
-        placeholder="Nome do produto"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <FormInput
-        placeholder="Preço"
-        value={price}
-        onChangeText={handlePriceChange}
-        keyboardType="numeric"
-        returnKeyType="done"
-        onSubmitEditing={Keyboard.dismiss}
-        blurOnSubmit={true}
-      />
-
-      <FormInput
-        placeholder="Código de barras"
-        value={barcode}
-        onChangeText={setBarcode}
-        style={styles.lastInput}
-      />
-
-      <AppButton
-        title={editingProductId ? "Atualizar produto" : "Cadastrar produto"}
-        onPress={handleSaveProduct}
-      />
-
-      {editingProductId && (
         <AppButton
-          title="Cancelar edição"
-          onPress={handleCancelEdit}
+          title="Ler código de barras"
+          onPress={handleOpenScanner}
           variant="secondary"
-          style={styles.cancelButton}
+          style={styles.scannerButton}
         />
-      )}
+
+        <FormInput
+          label="Nome do produto"
+          placeholder="Ex: Coca-Cola 2L"
+          value={name}
+          onChangeText={setName}
+        />
+
+        <FormInput
+          label="Preço"
+          placeholder="R$ 0,00"
+          value={price}
+          onChangeText={handlePriceChange}
+          keyboardType="numeric"
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
+          blurOnSubmit={true}
+        />
+
+        <FormInput
+          label="Código de barras"
+          placeholder="Escaneie ou digite"
+          value={barcode}
+          onChangeText={setBarcode}
+          containerStyle={styles.lastInput}
+        />
+
+        <AppButton
+          title={editingProductId ? "Atualizar produto" : "Cadastrar produto"}
+          onPress={handleSaveProduct}
+        />
+
+        {editingProductId && (
+          <AppButton
+            title="Cancelar edição"
+            onPress={handleCancelEdit}
+            variant="secondary"
+            style={styles.cancelButton}
+          />
+        )}
+      </View>
 
       <Text style={styles.listTitle}>Produtos cadastrados</Text>
     </View>
@@ -68,23 +81,57 @@ export default function ProductForm({
 }
 
 const styles = StyleSheet.create({
+  welcomeSection: {
+    alignItems: 'center',
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  iconBox: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+  iconText: {
+    fontSize: 36,
+  },
   title: {
-    fontSize: 24,
-    marginTop: 40,
-    marginBottom: 20,
+    ...typography.h1,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    ...typography.caption,
+    fontSize: 15,
+  },
+  formCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    ...shadows.md,
+  },
+  sectionTitle: {
+    ...typography.h3,
+    marginBottom: spacing.md,
+    color: colors.primary,
   },
   scannerButton: {
-    marginBottom: 20,
+    marginBottom: spacing.md,
   },
   lastInput: {
-    marginBottom: 20,
+    marginBottom: spacing.md,
   },
   cancelButton: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   listTitle: {
-    fontSize: 20,
-    marginTop: 30,
-    marginBottom: 12,
+    ...typography.h2,
+    marginBottom: spacing.md,
+    paddingHorizontal: 4,
   },
 });
+

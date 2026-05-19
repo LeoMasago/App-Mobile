@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { loginUser } from '../firebase/authService';
+import FormInput from '../components/FormInput';
+import AppButton from '../components/AppButton';
+import { colors, radius, shadows, spacing, typography } from '../theme';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -11,7 +14,6 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Atenção', 'Preencha email e senha.');
       return;
     }
-
     try {
       await loginUser(email.trim(), password);
       navigation.navigate('Home');
@@ -21,35 +23,135 @@ export default function LoginScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Login</Text>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.logoArea}>
+          <Text style={styles.appName}>Aplicativo de Estoque</Text>
+        </View>
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
-      />
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Bem-vindo de volta</Text>
+          <Text style={styles.cardSubtitle}>Faça login para continuar</Text>
 
-      <TextInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
-      />
+          <FormInput
+            label="Email"
+            placeholder="seu@email.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            containerStyle={styles.inputSpacing}
+          />
 
-      <Button title="Entrar" onPress={handleLogin} />
+          <FormInput
+            label="Senha"
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            containerStyle={styles.inputSpacing}
+          />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
-        <Text style={{ marginTop: 10 }}>Criar conta?</Text>
-      </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('EsqueciSenha')} style={styles.forgotLink}>
+            <Text style={styles.forgotText}>Esqueci minha senha</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('EsqueciSenha')}>
-        <Text style={{ marginTop: 10 }}>Esqueci minha senha</Text>
-      </TouchableOpacity>
-    </View>
+          <AppButton title="Entrar" onPress={handleLogin} style={styles.loginBtn} />
+        </View>
+
+        <View style={styles.registerRow}>
+          <Text style={styles.registerPrompt}>Não tem uma conta? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+            <Text style={styles.registerLink}>Criar conta</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  logoArea: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...shadows.lg,
+  },
+  logoIcon: {
+    fontSize: 40,
+  },
+  appName: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    ...shadows.md,
+    marginBottom: spacing.lg,
+  },
+  cardTitle: {
+    ...typography.h2,
+    marginBottom: spacing.xs,
+  },
+  cardSubtitle: {
+    ...typography.caption,
+    marginBottom: spacing.lg,
+    fontSize: 14,
+  },
+  inputSpacing: {
+    marginBottom: spacing.md,
+  },
+  forgotLink: {
+    alignSelf: 'flex-end',
+    marginBottom: spacing.lg,
+    marginTop: -spacing.xs,
+  },
+  forgotText: {
+    ...typography.link,
+    fontSize: 13,
+  },
+  loginBtn: {
+    marginTop: spacing.xs,
+  },
+  registerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerPrompt: {
+    ...typography.caption,
+    fontSize: 15,
+  },
+  registerLink: {
+    ...typography.link,
+    fontSize: 15,
+  },
+});

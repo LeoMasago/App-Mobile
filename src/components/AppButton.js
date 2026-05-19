@@ -1,34 +1,60 @@
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { colors, radius, shadows } from "../theme";
 
-const variantColors = {
-  primary: "#2563EB",
-  danger: "#EF4444",
-  secondary: "#9CA3AF",
+const variants = {
+  primary: {
+    background: colors.primary,
+    text: colors.white,
+    shadow: shadows.lg,
+  },
+  danger: {
+    background: colors.danger,
+    text: colors.white,
+    shadow: shadows.sm,
+  },
+  secondary: {
+    background: colors.surface,
+    text: colors.textSecondary,
+    shadow: shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
 };
 
 export default function AppButton({ title, onPress, variant = "primary", style }) {
+  const v = variants[variant] ?? variants.primary;
+
   return (
     <TouchableOpacity
-      style={[styles.button, { backgroundColor: variantColors[variant] ?? variantColors.primary }, style]}
+      style={[
+        styles.button,
+        {
+          backgroundColor: v.background,
+          borderWidth: v.borderWidth ?? 0,
+          borderColor: v.borderColor ?? 'transparent',
+        },
+        v.shadow,
+        style,
+      ]}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.75}
     >
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, { color: v.text }]}>{title}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderRadius: radius.md,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   text: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 16,
+    fontWeight: "700",
+    fontSize: 15,
+    letterSpacing: 0.2,
   },
 });

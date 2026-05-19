@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Alert, FlatList } from "react-native";
+import { View, Text, Alert, FlatList, StyleSheet } from "react-native";
 import ProductForm from "../components/ProductForm";
 import ProductCard from "../components/ProductCard";
 import AppButton from "../components/AppButton";
@@ -9,6 +9,7 @@ import {
   deleteProduct,
   updateProduct,
 } from "../firebase/productService";
+import { colors, spacing, typography } from "../theme";
 
 export default function HomeScreen({ navigation, route }) {
   const [name, setName] = useState("");
@@ -20,21 +21,13 @@ export default function HomeScreen({ navigation, route }) {
 
   function formatPriceBR(value) {
     const onlyNumbers = value.replace(/\D/g, "");
-
-    if (!onlyNumbers) {
-      return "";
-    }
-
+    if (!onlyNumbers) return "";
     const numberValue = Number(onlyNumbers) / 100;
-
-    return numberValue.toLocaleString("pt-BR", {
-      style: "currency", currency: "BRL",
-    });
+    return numberValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
   function handlePriceChange(text) {
-    const formattedPrice = formatPriceBR(text);
-    setPrice(formattedPrice);
+    setPrice(formatPriceBR(text));
   }
 
   async function loadProducts() {
@@ -47,9 +40,7 @@ export default function HomeScreen({ navigation, route }) {
     }
   }
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  useEffect(() => { loadProducts(); }, []);
 
   function clearForm() {
     setName("");
@@ -80,7 +71,6 @@ export default function HomeScreen({ navigation, route }) {
         await createProduct(productData);
         Alert.alert("Sucesso", "Produto cadastrado com sucesso!");
       }
-
       clearForm();
       await loadProducts();
     } catch (error) {
@@ -98,9 +88,7 @@ export default function HomeScreen({ navigation, route }) {
     setEditingProductId(product.id);
   }
 
-  function handleCancelEdit() {
-    clearForm();
-  }
+  function handleCancelEdit() { clearForm(); }
 
   async function handleDeleteProduct(productId) {
     Alert.alert(
@@ -114,11 +102,7 @@ export default function HomeScreen({ navigation, route }) {
           onPress: async () => {
             try {
               await deleteProduct(productId);
-
-              if (editingProductId === productId) {
-                clearForm();
-              }
-
+              if (editingProductId === productId) clearForm();
               Alert.alert("Sucesso", "Produto excluído com sucesso!");
               await loadProducts();
             } catch (error) {
@@ -152,8 +136,8 @@ export default function HomeScreen({ navigation, route }) {
     <FlatList
       data={products}
       keyExtractor={(item) => item.id}
-      className="flex-1"
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      style={styles.list}
+      contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={
         <ProductForm
@@ -171,14 +155,17 @@ export default function HomeScreen({ navigation, route }) {
         />
       }
       ListEmptyComponent={
-        <Text className="text-gray-500">Nenhum produto cadastrado.</Text>
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>Nenhum produto cadastrado ainda</Text>
+          <Text style={styles.emptyHint}>Use o formulário acima para adicionar</Text>
+        </View>
       }
       ListFooterComponent={
         <AppButton
           title="Sair"
           onPress={() => navigation.navigate("Login")}
           variant="secondary"
-          className="mt-5 mb-10"
+          style={styles.logoutBtn}
         />
       }
       renderItem={({ item }) => (
@@ -191,3 +178,33 @@ export default function HomeScreen({ navigation, route }) {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  emptyBox: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: spacing.md,
+  },
+  emptyText: {
+    ...typography.h3,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  emptyHint: {
+    ...typography.caption,
+  },
+  logoutBtn: {
+    marginTop: spacing.lg,
+  },
+});

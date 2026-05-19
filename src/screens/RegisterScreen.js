@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { registerUser } from '../firebase/authService';
+import FormInput from '../components/FormInput';
+import AppButton from '../components/AppButton';
+import { colors, radius, shadows, spacing, typography } from '../theme';
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -12,7 +15,6 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Atenção', 'Preencha nome, email e senha.');
       return;
     }
-
     try {
       await registerUser(email.trim(), password);
       Alert.alert('Sucesso', 'Usuário cadastrado com sucesso.');
@@ -23,34 +25,121 @@ export default function RegisterScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Cadastro</Text>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.logoArea}>
+          <Text style={styles.pageTitle}>Criar conta</Text>
+          <Text style={styles.tagline}>Comece a gerenciar seu estoque hoje</Text>
+        </View>
 
-      <TextInput
-        placeholder="Nome"
-        value={name}
-        onChangeText={setName}
-        style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
-      />
+        <View style={styles.card}>
+          <FormInput
+            label="Nome completo"
+            placeholder="Seu nome"
+            value={name}
+            onChangeText={setName}
+            containerStyle={styles.inputSpacing}
+          />
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
-      />
+          <FormInput
+            label="Email"
+            placeholder="seu@email.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            containerStyle={styles.inputSpacing}
+          />
 
-      <TextInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
-      />
+          <FormInput
+            label="Senha"
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            containerStyle={styles.inputSpacing}
+          />
 
-      <Button title="Cadastrar" onPress={handleRegister} />
-    </View>
+          <AppButton title="Criar conta" onPress={handleRegister} style={styles.registerBtn} />
+        </View>
+
+        <View style={styles.loginRow}>
+          <Text style={styles.loginPrompt}>Já tem uma conta? </Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.loginLink}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  logoArea: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...shadows.lg,
+  },
+  logoIcon: {
+    fontSize: 40,
+  },
+  pageTitle: {
+    ...typography.h1,
+  },
+  tagline: {
+    ...typography.caption,
+    marginTop: spacing.xs,
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    ...shadows.md,
+    marginBottom: spacing.lg,
+  },
+  inputSpacing: {
+    marginBottom: spacing.md,
+  },
+  registerBtn: {
+    marginTop: spacing.xs,
+  },
+  loginRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginPrompt: {
+    ...typography.caption,
+    fontSize: 15,
+  },
+  loginLink: {
+    ...typography.link,
+    fontSize: 15,
+  },
+});
