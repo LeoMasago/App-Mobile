@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Bem-vindo de volta</Text>
+          <Text style={styles.cardTitle}>Bem-vindo</Text>
           <Text style={styles.cardSubtitle}>Faça login para continuar</Text>
 
           <FormInput
